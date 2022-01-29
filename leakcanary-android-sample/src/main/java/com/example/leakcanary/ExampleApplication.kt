@@ -20,6 +20,21 @@ import android.app.Dialog
 import android.app.Service
 import android.os.StrictMode
 import android.view.View
+import com.facebook.flipper.plugins.inspector.DescriptorMapping
+
+import com.facebook.flipper.plugins.inspector.InspectorFlipperPlugin
+
+import com.facebook.flipper.android.AndroidFlipperClient
+
+import com.facebook.flipper.core.FlipperClient
+
+import com.facebook.flipper.android.utils.FlipperUtils
+import com.facebook.flipper.plugins.leakcanary2.FlipperLeakListener
+import com.facebook.flipper.plugins.leakcanary2.LeakCanary2FlipperPlugin
+
+import com.facebook.soloader.SoLoader
+import leakcanary.LeakCanary
+
 
 open class ExampleApplication : Application() {
   val leakedViews = mutableListOf<View>()
@@ -28,7 +43,15 @@ open class ExampleApplication : Application() {
 
   override fun onCreate() {
     super.onCreate()
-    enabledStrictMode()
+    SoLoader.init(this, false)
+
+    LeakCanary.config = LeakCanary.config.copy(
+      onHeapAnalyzedListener = FlipperLeakListener()
+    )
+
+    val client = AndroidFlipperClient.getInstance(this)
+    client.addPlugin(LeakCanary2FlipperPlugin())
+    client.start()
   }
 
   private fun enabledStrictMode() {
